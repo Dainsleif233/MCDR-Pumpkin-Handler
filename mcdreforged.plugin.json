@@ -1,0 +1,14 @@
+{
+    "id": "pumpkin_handler",
+    "version": "1.0.0",
+    "name": "Pumpkin Handler",
+    "description": {
+        "en_us": "A handler which allows Pumpkin to use MCDR and its plugins.",
+        "zh_cn": "一个让Pumpkin也能使用MCDR及其插件的服务端处理器."
+    },
+    "author": "Dainsleif",
+    "link": "https://github.com/Dainsleif233/MCDR-Pumpkin-Handler",
+    "dependencies": {
+        "mcdreforged": ">=2.0.0-alpha.1"
+    }
+}
