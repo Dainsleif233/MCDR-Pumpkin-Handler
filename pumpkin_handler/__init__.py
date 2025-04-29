@@ -2,7 +2,6 @@ import functools
 import json
 import re
 import time
-from abc import ABC
 from typing import Optional, List
 
 import parse
@@ -12,10 +11,11 @@ from mcdreforged.handler.abstract_server_handler import AbstractServerHandler
 from mcdreforged.info_reactor.info import InfoSource, Info
 from mcdreforged.info_reactor.server_information import ServerInformation
 from mcdreforged.minecraft.rtext.text import RTextBase
+from mcdreforged.plugin.si.server_interface import ServerInterface
 from mcdreforged.utils import string_utils
 from mcdreforged.utils.types.message import MessageText
 
-class PumpkinHandler(AbstractServerHandler, ABC):
+class PumpkinHandler(AbstractServerHandler):
     """
     A handler for Pumpkin Minecraft servers
     """
@@ -79,7 +79,9 @@ class PumpkinHandler(AbstractServerHandler, ABC):
 
     @override
     def get_send_message_command(self, target: str, message: MessageText, server_information: ServerInformation) -> Optional[str]:
-        return 'tellraw {} {}'.format(target, self.format_message(message))
+        command = 'tellraw {} {}'.format(target, self.format_message(message))
+        ServerInterface.get_instance().logger.debug('Send command: {}'.format(command))
+        return command
 
     @override
     def get_broadcast_message_command(self, message: MessageText, server_information: ServerInformation) -> Optional[str]:
