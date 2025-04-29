@@ -138,7 +138,7 @@ class PumpkinHandler(AbstractServerHandler, ABC):
                     return m['name']
         return None
 
-    __server_version_regex = re.compile(r'Starting Pumpkin ([^ ]+) \([a-z0-9_]{8}\) for Minecraft (?P<version>.+) \(Protocol (d+)\)')
+    __server_version_regex = re.compile(r'Starting Pumpkin ([^ ]+) \([a-z0-9_]{8}\) for Minecraft (?P<version>[^ ]+) \(Protocol (\d+)\)')
 
     @override
     def parse_server_version(self, info: Info):
