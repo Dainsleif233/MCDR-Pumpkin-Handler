@@ -10,7 +10,7 @@ from typing_extensions import override
 from mcdreforged.handler.abstract_server_handler import AbstractServerHandler
 from mcdreforged.info_reactor.info import InfoSource, Info
 from mcdreforged.info_reactor.server_information import ServerInformation
-from mcdreforged.minecraft.rtext.text import RTextBase
+from mcdreforged.minecraft.rtext.text import RTextBase, RTextJsonFormat
 from mcdreforged.plugin.si.server_interface import ServerInterface
 from mcdreforged.utils import string_utils
 from mcdreforged.utils.types.message import MessageText
@@ -51,18 +51,15 @@ class PumpkinHandler(AbstractServerHandler):
                 break
         else:
             raise ValueError('Unrecognized input: ' + info.content)
-        t = time.localtime(time.time())
-        info.hour = t.tm_hour
-        info.min = t.tm_min
-        info.sec = t.tm_sec
+        info.hour = 0
+        info.min = 0
+        info.sec = 0
         info.logging_level = parsed['logging']
         info.content = parsed['content']
 
     @classmethod
     def get_player_message_parsing_formatter(cls) -> List[re.Pattern]:
-        return [
-            re.compile(r'\<chat\> (?P<name>[^:]+): (?P<message>.*)')
-        ]
+        return [re.compile(r'\<chat\> (?P<name>[^:]+): (?P<message>.*)')]
 
     @classmethod
     @functools.lru_cache()
@@ -71,15 +68,15 @@ class PumpkinHandler(AbstractServerHandler):
         return [parse.Parser(fmt) if isinstance(fmt, str) else fmt for fmt in formatters]
 
     @classmethod
-    def format_message(cls, message: MessageText) -> str:
+    def format_message(cls, message: MessageText, *, server_information: Optional[ServerInformation] = None) -> str:
         if isinstance(message, RTextBase):
-            return message.to_json_str()
+            return message.to_json_str(json_format=RTextJsonFormat.V_1_21_5)
         else:
             return json.dumps(str(message), ensure_ascii=False, separators=(',', ':'))
 
     @override
     def get_send_message_command(self, target: str, message: MessageText, server_information: ServerInformation) -> Optional[str]:
-        command = 'tellraw {} {}'.format(target, self.format_message(message))
+        command = 'tellraw {} {}'.format(target, self.format_message(message, server_information=server_information))
         ServerInterface.get_instance().logger.debug('Send command: {}'.format(command))
         return command
 
@@ -94,9 +91,6 @@ class PumpkinHandler(AbstractServerHandler):
             raise TypeError('The text to parse should be a string')
         raw_result = Info(InfoSource.SERVER, text)
         raw_result.content = string_utils.clean_console_color_code(text)
-        raw_result.hour = 0
-        raw_result.min = 0
-        raw_result.sec = 0
         return raw_result
 
     __player_name_regex = re.compile(r'[a-zA-Z0-9_]{3,16}')
@@ -162,11 +156,9 @@ class PumpkinHandler(AbstractServerHandler):
     def test_server_startup_done(self, info: Info):
         return info.is_from_server and self.__server_address_regex.fullmatch(info.content) is not None
 
-    __rcon_started_regex = re.compile(r'RCON running on [\w.]+:\d+')
-
     @override
     def test_rcon_started(self, info: Info):
-        return info.is_from_server and self.__rcon_started_regex.fullmatch(info.content) is not None
+        return False
 
     __server_stopping_regex = re.compile(r'Stopping the server')
 
